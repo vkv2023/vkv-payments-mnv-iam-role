@@ -1,0 +1,67 @@
+﻿name: CloudFormation Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment
+        required: true
+        type: choice
+        options:
+          - dev
+          - sat
+          - prd
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+
+  validate:
+    name: Validate CloudFormation
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE }}
+          aws-region: us-east-1
+
+      - name: Validate CloudFormation
+        run: |
+          aws cloudformation validate-template \
+            --template-body file://cloudformation/iam-role.yaml
+
+  deploy:
+    name: Deploy CloudFormation
+    needs: validate
+    runs-on: ubuntu-latest
+
+    environment:
+      name: ${{ inputs.environment }}
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE }}
+          aws-region: us-east-1
+
+      - name: Deploy CloudFormation
+        run: |
+          aws cloudformation deploy \
+            --template-file cloudformation/iam-role.yaml \
+            --stack-name vkv-payments-mnv-iam-role-${{ inputs.environment }} \
+            --parameter-overrides \
+              Environment=${{ inputs.environment }} \
+            --capabilities CAPABILITY_NAMED_IAM

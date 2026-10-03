@@ -1,0 +1,226 @@
+service:
+  type: iam-role
+  displayName: IAM Role
+  category: security
+  provider: aws
+
+  description: >
+    Creates an AWS IAM Role with a configurable AWS service trust
+    relationship, optional managed policies, and enterprise tags.
+
+  version: "1.0"
+
+  cloudFormation:
+    template: iam-role.yaml
+    parameters: parameters.yaml
+
+  resourceTypes:
+    - AWS::IAM::Role
+
+  capabilities:
+    - iam
+    - cloudformation
+    - tagging
+
+  requiredCapabilities:
+    - CAPABILITY_NAMED_IAM
+
+
+generation:
+
+  repository:
+    includeCloudFormation: true
+    includeParameters: true
+    includeMetadata: true
+    includeEnvironmentConfiguration: true
+    includeDeploymentScripts: true
+    includeGitHubWorkflows: true
+    includeValidation: true
+    includeReadme: true
+
+  environments:
+    supported:
+      - dev
+      - sat
+      - uat
+      - prd
+
+  regions:
+    supported: multi-region
+
+
+configuration:
+
+  requiredParameters:
+    - RoleName
+    - Environment
+    - Application
+    - BusinessUnit
+    - ServicePrincipal
+    - DataClassification
+    - Criticality
+    - CostCenter
+    - Owner
+    - Repository
+
+  optionalParameters:
+    - ManagedPolicyArns
+
+
+validation:
+
+  naming:
+
+    required: true
+
+    roleName:
+      maxLength: 64
+      pattern: "^[A-Za-z0-9+=,.@_-]+$"
+
+  parameters:
+
+    Environment:
+      allowedValues:
+        - dev
+        - sat
+        - uat
+        - prd
+
+    DataClassification:
+      allowedValues:
+        - public
+        - internal
+        - confidential
+        - restricted
+
+    Criticality:
+      allowedValues:
+        - low
+        - medium
+        - high
+        - critical
+
+  tags:
+
+    required:
+      - Name
+      - Application
+      - Environment
+      - BusinessUnit
+      - CostCenter
+      - Owner
+      - ManagedBy
+      - Repository
+      - DataClassification
+      - Criticality
+
+  security:
+
+    requireExplicitTrustPolicy: true
+
+    allowWildcardPrincipal: false
+
+    allowWildcardActions: false
+
+    requireManagedByTag: true
+
+    requireRepositoryTag: true
+
+
+trustPolicy:
+
+  configurable: true
+
+  parameter: ServicePrincipal
+
+  default:
+    - ec2.amazonaws.com
+
+
+managedPolicies:
+
+  supported: true
+
+  parameter: ManagedPolicyArns
+
+  optional: true
+
+
+deployment:
+
+  strategy: cloudformation
+
+  changeSet:
+    enabled: true
+    requiredBeforeProduction: true
+
+  production:
+    approvalRequired: true
+
+  iam:
+    requiresNamedIamCapability: true
+    capability: CAPABILITY_NAMED_IAM
+
+  oidc:
+    enabled: true
+
+
+destruction:
+
+  enabled: true
+
+  productionApprovalRequired: true
+
+  requireExplicitConfirmation: true
+
+
+tags:
+
+  managedBy:
+    key: ManagedBy
+    value: cloudformation
+
+  required:
+    - Name
+    - Application
+    - Environment
+    - BusinessUnit
+    - CostCenter
+    - Owner
+    - ManagedBy
+    - Repository
+    - DataClassification
+    - Criticality
+
+
+outputs:
+
+  - RoleName
+  - RoleArn
+  - RoleId
+
+
+ownership:
+
+  repositoryManaged: true
+
+  infrastructureAsCode: cloudformation
+
+  managedBy: cloudformation
+
+
+documentation:
+
+  required:
+    - README.md
+    - config/resource.yaml
+    - config/tags.yaml
+    - config/environments
+    - cloudformation/iam-role.yaml
+
+
+audit:
+
+  enabled: true
+
+  manifestFile: .factory-manifest.json

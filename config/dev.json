@@ -1,0 +1,29 @@
+﻿{
+    "environment":  "dev",
+    "resource":  {
+                     "type":  "iam-role"
+                 },
+    "organization":  {
+                         "company":  "VKV",
+                         "businessUnit":  "Payments",
+                         "application":  "MNV"
+                     },
+    "aws":  {
+                "regions":  [
+                                "us-east-1",
+                                "us-west-2"
+                            ]
+            },
+    "tags":  {
+                 "Application":  "MNV",
+                 "AWSRegions":  "us-east-1,us-west-2",
+                 "Environment":  "dev",
+                 "BusinessUnit":  "Payments",
+                 "CostCenter":  "1124",
+                 "Owner":  "Vinodk@vangaurd.com",
+                 "ManagedBy":  "cloudformation",
+                 "Repository":  "vkv-payments-mnv-iam-role",
+                 "DataClassification":  "confidential",
+                 "Criticality":  "high"
+             }
+}
