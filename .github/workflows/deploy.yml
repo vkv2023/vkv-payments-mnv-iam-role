@@ -1,4 +1,4 @@
-﻿name: CloudFormation Deployment
+name: CloudFormation Deployment
 
 on:
   workflow_dispatch:
@@ -22,6 +22,9 @@ jobs:
     name: Validate CloudFormation
     runs-on: ubuntu-latest
 
+    environment:
+      name: ${{ inputs.environment }}
+
     steps:
 
       - name: Checkout
@@ -32,6 +35,10 @@ jobs:
         with:
           role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE }}
           aws-region: us-east-1
+
+      - name: Verify AWS Identity
+        run: |
+          aws sts get-caller-identity
 
       - name: Validate CloudFormation
         run: |
@@ -56,6 +63,10 @@ jobs:
         with:
           role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE }}
           aws-region: us-east-1
+
+      - name: Verify AWS Identity
+        run: |
+          aws sts get-caller-identity
 
       - name: Deploy CloudFormation
         run: |
