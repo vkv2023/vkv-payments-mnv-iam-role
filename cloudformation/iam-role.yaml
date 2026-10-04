@@ -1,163 +1,72 @@
 AWSTemplateFormatVersion: '2010-09-09'
 
-Description: >
-  Creates an AWS IAM Role with configurable trust policy,
-  managed policies, inline policies, and enterprise tags.
+Description: IAM Role for VKV Payments MNV
 
 Parameters:
 
-  RoleName:
-    Type: String
-    Description: Name of the IAM Role
-    MinLength: 1
-    MaxLength: 64
-    AllowedPattern: '[A-Za-z0-9+=,.@_-]+'
-
   Environment:
     Type: String
-    Description: Deployment environment
     AllowedValues:
       - dev
       - sat
-      - uat
       - prd
 
-  Application:
+  ApplicationName:
     Type: String
-    Description: Application name
+    Default: vkv-payments-mnv
 
-  BusinessUnit:
+  RoleName:
     Type: String
-    Description: Business unit
-
-  ServicePrincipal:
-    Type: String
-    Description: AWS service that can assume this role
-    Default: ec2.amazonaws.com
 
   ManagedPolicyArns:
     Type: CommaDelimitedList
-    Description: >
-      Comma-separated list of managed policy ARNs.
-      Leave empty when no managed policies are required.
-    Default: ''
-
-  DataClassification:
-    Type: String
-    Description: Data classification for the resource
-    Default: internal
-    AllowedValues:
-      - public
-      - internal
-      - confidential
-      - restricted
-
-  Criticality:
-    Type: String
-    Description: Business criticality
-    Default: medium
-    AllowedValues:
-      - low
-      - medium
-      - high
-      - critical
-
-  CostCenter:
-    Type: String
-    Description: Cost center associated with the resource
+    Default: ""
 
   Owner:
     Type: String
-    Description: Resource owner
 
-  Repository:
+  CostCenter:
     Type: String
-    Description: GitHub repository managing this resource
-
-Conditions:
-
-  HasManagedPolicies:
-    Fn::Not:
-      - Fn::Equals:
-          - Fn::Join:
-              - ''
-              - Ref: ManagedPolicyArns
-          - ''
 
 Resources:
 
-  IamRole:
+  ApplicationRole:
     Type: AWS::IAM::Role
 
     Properties:
-
       RoleName: !Ref RoleName
-
-      Description: !Sub >
-        IAM Role for ${Application} ${Environment}
 
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
-
         Statement:
-
           - Effect: Allow
-
             Principal:
               Service:
-                - !Ref ServicePrincipal
-
+                - lambda.amazonaws.com
             Action:
               - sts:AssumeRole
 
-      ManagedPolicyArns:
-        !If
-          - HasManagedPolicies
-          - !Ref ManagedPolicyArns
-          - !Ref AWS::NoValue
+      ManagedPolicyArns: !Ref ManagedPolicyArns
 
       Tags:
-
-        - Key: Name
-          Value: !Ref RoleName
-
         - Key: Application
-          Value: !Ref Application
+          Value: !Ref ApplicationName
 
         - Key: Environment
           Value: !Ref Environment
 
-        - Key: BusinessUnit
-          Value: !Ref BusinessUnit
+        - Key: Owner
+          Value: !Ref Owner
 
         - Key: CostCenter
           Value: !Ref CostCenter
 
-        - Key: Owner
-          Value: !Ref Owner
-
-        - Key: ManagedBy
-          Value: cloudformation
-
-        - Key: Repository
-          Value: !Ref Repository
-
-        - Key: DataClassification
-          Value: !Ref DataClassification
-
-        - Key: Criticality
-          Value: !Ref Criticality
-
 Outputs:
 
-  RoleName:
-    Description: Name of the IAM Role
-    Value: !Ref IamRole
-
   RoleArn:
-    Description: ARN of the IAM Role
-    Value: !GetAtt IamRole.Arn
+    Description: IAM Role ARN
+    Value: !GetAtt ApplicationRole.Arn
 
-  RoleId:
-    Description: Unique ID of the IAM Role
-    Value: !GetAtt IamRole.RoleId
+  RoleName:
+    Description: IAM Role Name
+    Value: !Ref ApplicationRole
